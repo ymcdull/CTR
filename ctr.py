@@ -23,18 +23,22 @@ print(header)
 
 # In[193]:
 
+### use trainhead.txt file for testing, read head 1000 lines here
+#trainfile = 'trainhead.txt'
 trainfile = 'train.txt'
 testfile = 'testhead.txt'
 
 n = 2847802
 s = 100000
-skip = sorted(random.sample(xrange(n),n-s))
+#skip = sorted(random.sample(xrange(n),n-s))
 
-train = pd.read_csv(trainfile, header = None, sep = '\t', names = header, skiprows=skip)
+#train = pd.read_csv(trainfile, header = None, sep = '\t', names = header, skiprows=skip)
+train = pd.read_csv(trainfile, header = None, sep = '\t', names = header)
 #test = pd.read_csv(testfile, header = None, sep = '\t', names = header[1:])
 
 ### Show head lines of files
 print(train.head())
+print(train.shape)
 #print(test.head())
 
 ### output to csv file
@@ -108,26 +112,40 @@ floor_price.head()
 
 # In[68]:
 
-# ### Expand User tags
-# print train["User Tags"].head()
-# user_list = []
-# for tag in train["User Tags"]:
-#     if tag == 'null':
-#         pass
-#     else:
-#         taglist = tag.strip().split(',')
-#         for t in taglist:
-#             if t not in user_list:
-#                 user_list.append(t)
+### Expand User tags
+user_list = []
+for tag in train["User Tags"]:
+    if tag == 'null':
+        pass
+    else:
+        taglist = tag.strip().split(',')
+        for t in taglist:
+            if t not in user_list:
+                user_list.append(t)
         
-# print user_list
+user_dict = {}
+for user in user_list:
+	user_dict[user] = [0] * len(train)
 
+for index, row in train.iterrows():
+	line = row["User Tags"]
+	line = line.strip()
+	if line == "null":
+		pass
+	else:
+		line_list = line.split(',')
+		for el in line_list:
+			user_dict[el][index] = 1
+usertag = pd.DataFrame.from_dict(user_dict)
+print(usertag.shape)
+print(type(usertag))
+usertag.rename(columns = lambda x : "Usertag_" + x, inplace = True)
 
 # In[198]:
 
-mytrain = pd.concat([weekdays, hour, os, browser, floor_price], axis = 1)
-mytrain.shape
-mytrain.head()
+mytrain = pd.concat([weekdays, hour, os, browser, floor_price, usertag], axis = 1)
+print(mytrain.shape)
+print(mytrain.head())
 
 
 # In[211]:
@@ -159,7 +177,7 @@ result = lr.predict_proba(x)
 
 # In[212]:
 
-print(result[:,1])
+#print(result[:,1])
 
 
 # In[222]:
